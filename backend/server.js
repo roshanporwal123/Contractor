@@ -31,6 +31,18 @@ import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
+// const allowedOrigins = [
+//   "http://localhost:5173",
+//   "https://contractor-frontend-six.vercel.app",
+// ];
+
+// app.use(
+//   cors({
+//       origin: allowedOrigins,
+//       credentials: true,
+//   })
+// );
+
 const allowedOrigins = [
   "http://localhost:5173",
   "https://contractor-frontend-six.vercel.app",
@@ -38,11 +50,20 @@ const allowedOrigins = [
 
 app.use(
   cors({
-      origin: allowedOrigins,
-      credentials: true,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+app.get("/api/version", (req, res) => res.json({ v: "cors-fix-1" }));
 app.post("/api/payments/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 app.use(express.json());
 app.use(cookieParser());
