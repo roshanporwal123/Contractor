@@ -44,6 +44,27 @@ app.use(
 );
 
 app.get("/api/version", (req, res) => res.json({ v: "cors-fix-1" }));
+
+let dbPromise;
+const ensureDB = () => {
+  if (!dbPromise) {
+    dbPromise = connectDB().catch((err) => {
+      dbPromise = null;
+      throw err;
+    });
+  }
+  return dbPromise;
+};
+
+app.use(async (req, res, next) => {
+  try {
+    await ensureDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post("/api/payments/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 app.use(express.json());
 app.use(cookieParser());
@@ -83,18 +104,6 @@ app.use("/api/admin", adminRoutes);
 
 // export default app;
 
-let dbPromise;
-app.use(async (req, res, next) => {
-  try {
-    dbPromise = dbPromise || connectDB();
-    await dbPromise;
-    next();
-  } catch (err) {
-    dbPromise = null;
-    next(err);
-  }
-});
-
 app.get("/", (req, res) => {
   res.json({ message: "API is running" });
 });
@@ -105,13 +114,16 @@ const PORT = process.env.PORT || 5000;
 if (!process.env.VERCEL) {
   const server = http.createServer(app);
   initSocket(server);
-  connectDB().then(() => {
+  ensureDB().then(() => {
     startReminderJob();
     startDocumentExpiryJob();
     startCalendarReminders();
     server.listen(PORT, () =>
       console.log(`Server running on port ${PORT}`)
     );
+  }).catch((err) => {
+    console.error("Server startup failed:", err.message);
+    process.exit(1);
   });
 }
 
