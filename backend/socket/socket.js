@@ -94,6 +94,7 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import Conversation from "../models/Conversation.js";
+import { allowedOrigins } from "../config/cors.js";
 
 let io;
 // userId -> number of active sockets (multiple tabs support)
@@ -118,7 +119,7 @@ const parseCookies = (header = "") => {
 export const initSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL,
+      origin: allowedOrigins,
       credentials: true,
     },
   });

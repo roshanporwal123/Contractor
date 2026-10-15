@@ -36,17 +36,18 @@ const sendVerificationEmail = async (user) => {
 export const register = async (req, res) => {
   try {
     const { name, email, password, role, phone } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
     if (!["customer", "contractor"].includes(role)) {
       return res.status(400).json({ message: "Role must be customer or contractor" });
     }
 
-    const exists = await User.findOne({ email });
+    const exists = await User.findOne({ email: normalizedEmail });
     if (exists) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    const user = await User.create({ name, email, password, role, phone });
+    const user = await User.create({ name, email: normalizedEmail, password, role, phone });
 
     try {
       await sendVerificationEmail(user);
@@ -58,6 +59,9 @@ export const register = async (req, res) => {
       message: "Registered successfully. Please check your email to verify your account.",
     });
   } catch (err) {
+    if (err.code === 11000 && err.keyPattern?.email) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
     res.status(500).json({ message: err.message });
   }
 };

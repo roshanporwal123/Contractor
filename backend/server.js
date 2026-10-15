@@ -5,6 +5,7 @@ import cors from "cors";
 import path from "path";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
+import { allowedOrigins } from "./config/cors.js";
 import authRoutes from "./routes/authRoutes.js";
 import companyRoutes from "./routes/companyRoutes.js";
 import contractorRoutes from "./routes/contractorRoutes.js";
@@ -31,31 +32,10 @@ import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
-// const allowedOrigins = [
-//   "http://localhost:5173",
-//   "https://contractor-frontend-six.vercel.app",
-// ];
-
-// app.use(
-//   cors({
-//       origin: allowedOrigins,
-//       credentials: true,
-//   })
-// );
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://contractor-frontend-six.vercel.app",
-];
-
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
+      callback(null, !origin || allowedOrigins.includes(origin));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -67,12 +47,6 @@ app.get("/api/version", (req, res) => res.json({ v: "cors-fix-1" }));
 app.post("/api/payments/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-  })
-);
 
 app.get("/", (req, res) => res.send("API running"));
 app.use("/api/auth", authRoutes);
