@@ -29,6 +29,9 @@ import reviewRoutes from "./routes/reviewRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import { startDocumentExpiryJob } from "./utils/documentExpiryChecker.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import contractorPortalRoutes from "./routes/contractorPortalRoutes.js";
+import customerPortalRoutes from "./routes/customerPortalRoutes.js";
+import adminPortalRoutes from "./routes/adminPortalRoutes.js"; 
 
 const app = express();
 
@@ -89,6 +92,9 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/contractor-portal", contractorPortalRoutes);
+app.use("/api/customer-portal", customerPortalRoutes);
+app.use("/api/admin-portal", adminPortalRoutes);
 
 // const PORT = process.env.PORT || 5000;
 
